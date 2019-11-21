@@ -1,0 +1,2 @@
+rootProject.name='AutoMLVision'
+include ':app'
