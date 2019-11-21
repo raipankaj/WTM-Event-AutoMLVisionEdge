@@ -7,6 +7,11 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
+
+    aaptOptions {
+        noCompress "tflite"  // Your model's file extension: "tflite", "lite", etc.
+    }
+
     defaultConfig {
         applicationId "com.wtmevent.automl"
         minSdkVersion 23
@@ -27,8 +32,13 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:${versions.kotlin_version}"
     implementation "androidx.appcompat:appcompat:${versions.appcompat}"
-    implementation 'androidx.core:core-ktx:1.1.0'
+
+    /*Responsive layout design*/
     implementation "androidx.constraintlayout:constraintlayout:${versions.constraintlayout}"
+
+    /*Library to use custom ML model*/
+    implementation "com.google.firebase:firebase-ml-model-interpreter:${versions.modelinterpreter}"
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
