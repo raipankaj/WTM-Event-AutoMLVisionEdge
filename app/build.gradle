@@ -36,8 +36,12 @@ dependencies {
     /*Responsive layout design*/
     implementation "androidx.constraintlayout:constraintlayout:${versions.constraintlayout}"
 
-    /*Library to use custom ML model*/
-    implementation "com.google.firebase:firebase-ml-model-interpreter:${versions.modelinterpreter}"
+    /*Material design*/
+    implementation "com.google.android.material:material:${versions.material}"
+
+    /*Library to use AutoML model*/
+    implementation "com.google.firebase:firebase-ml-vision:${versions.mlvision}"
+    implementation "com.google.firebase:firebase-ml-vision-automl:${versions.automl}"
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'

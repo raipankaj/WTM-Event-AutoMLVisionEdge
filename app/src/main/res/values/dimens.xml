@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Home screen -->
+    <dimen name="select_button_margin">16dp</dimen>
+    <dimen name="selected_image_margin">24dp</dimen>
+</resources>

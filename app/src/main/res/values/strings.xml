@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">AutoMLVision</string>
+    <string name="select_image">Select Image</string>
+    <string name="snack_bar_alert_wait_until_model_downloads">Please wait until model is downloaded</string>
+    <string name="snack_bar_alert_unable_to_detect">Unable to detect</string>
 </resources>
