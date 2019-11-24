@@ -7,6 +7,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.ml.common.modeldownload.FirebaseModelDownloadConditions
 import com.google.firebase.ml.common.modeldownload.FirebaseModelManager
 import com.google.firebase.ml.vision.FirebaseVision
+import com.google.firebase.ml.vision.automl.FirebaseAutoMLLocalModel
 import com.google.firebase.ml.vision.automl.FirebaseAutoMLRemoteModel
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.label.FirebaseVisionImageLabeler
@@ -15,10 +16,16 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
-    private var mIsModelAvailable = false
-
+    /*Specify the name of remote model so that FirebaseModelManager can download it*/
     private val mRemoteModel by lazy {
         FirebaseAutoMLRemoteModel.Builder(AppConstants.DATA_MODEL).build()
+    }
+
+    /*Specify the path to load the local model*/
+    private val mLocalModel by lazy {
+        FirebaseAutoMLLocalModel.Builder()
+            .setAssetFilePath(AppConstants.Path.LOCAL_MODEL)
+            .build()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,28 +43,52 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             FirebaseModelManager.getInstance().isModelDownloaded(mRemoteModel)
                 .addOnSuccessListener { modelDownloaded ->
 
-                    if (modelDownloaded == true) {
-                        data.data?.let { uri ->
-                            ivSelectedImage.setImageURI(uri)
+                    val optionBuilder = if (modelDownloaded) {
+                        FirebaseVisionOnDeviceAutoMLImageLabelerOptions.Builder(mRemoteModel)
+                    } else {
+                        FirebaseVisionOnDeviceAutoMLImageLabelerOptions.Builder(mLocalModel)
+                    }
 
-                            val image = FirebaseVisionImage.fromFilePath(this@MainActivity, uri)
-                            getFirebaseImageLabeler().processImage(image)
-                                .addOnSuccessListener {
-                                    val builder = StringBuilder()
+                    //Threshold to range from 0.0 to 1.0
+                    optionBuilder.setConfidenceThreshold(0.5f)
 
-                                    for (label in it) {
-                                        builder.append(label.text).append(":")
-                                            .append(label.confidence.calculatePercentage)
-                                        builder.append("\n")
-                                    }
+                    val labeler = FirebaseVision.getInstance()
+                        .getOnDeviceAutoMLImageLabeler(optionBuilder.build())
 
-                                    if (builder.isBlank()) {
-                                        getString(R.string.snack_bar_alert_unable_to_detect).showSnackBar()
-                                    } else {
-                                        tvLabel.text = builder.toString()
-                                    }
-                                }
-                        }
+                    processSelectedImage(data, labeler)
+                }
+        }
+    }
+
+    /**
+     * Get the URI of the selected image from gallery and process it using the
+     * firebase API for image processing.
+     *
+     * Append all the result found and set it to the text view, in case no result is
+     * found then display an alert message.
+     */
+    private fun processSelectedImage(
+        data: Intent,
+        labeler: FirebaseVisionImageLabeler
+    ) {
+        data.data?.let { uri ->
+            ivSelectedImage.setImageURI(uri)
+
+            val image = FirebaseVisionImage.fromFilePath(this@MainActivity, uri)
+            labeler.processImage(image)
+                .addOnSuccessListener {
+                    val builder = StringBuilder()
+
+                    for (label in it) {
+                        builder.append(label.text).append(":")
+                            .append(label.confidence.calculatePercentage)
+                        builder.append("\n")
+                    }
+
+                    if (builder.isBlank()) {
+                        getString(R.string.snack_bar_alert_unable_to_detect).showSnackBar()
+                    } else {
+                        tvLabel.text = builder.toString()
                     }
                 }
         }
@@ -66,20 +97,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private fun setOnClickListener() {
 
         btSelectImage.setOnClickListener {
-            if (mIsModelAvailable) {
-                getImageFromGallery()
-            } else {
-                getString(R.string.snack_bar_alert_wait_until_model_downloads).showSnackBar()
-            }
+            getImageFromGallery()
         }
-    }
-
-    private fun getFirebaseImageLabeler(): FirebaseVisionImageLabeler {
-        val option = FirebaseVisionOnDeviceAutoMLImageLabelerOptions.Builder(mRemoteModel)
-            .setConfidenceThreshold(0.5f)
-            .build()
-
-        return FirebaseVision.getInstance().getOnDeviceAutoMLImageLabeler(option)
     }
 
     private fun getImageFromGallery() {
@@ -100,11 +119,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             .build()
 
         FirebaseModelManager.getInstance().download(mRemoteModel, conditions)
-            .addOnCompleteListener {
-                mIsModelAvailable = it.isSuccessful
-            }
+            .addOnCompleteListener { }
     }
 
+    /**
+     * An extension over float to convert any float point number into two digit
+     * integer and append % symbol at the end.
+     */
     private val Float.calculatePercentage
         get() = "${this.times(100).toInt()} %"
 
