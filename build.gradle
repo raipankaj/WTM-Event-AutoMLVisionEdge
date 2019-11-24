@@ -1,7 +1,17 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.3.60-eap-25'
+    ext.versions = [
+            kotlin_version      :   '1.3.60-eap-25',
+            appcompat           :   '1.1.0',
+            constraintlayout    :   '1.1.3',
+            googleservice       :   '4.3.3',
+            modelinterpreter    :   '22.0.1',
+            mlvision            :   '24.0.1',
+            automl              :   '18.0.3',
+            material            :   '1.0.0'
+    ]
+
     repositories {
         google()
         jcenter()
@@ -10,7 +20,8 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.0.0-alpha04'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin_version}"
+        classpath "com.google.gms:google-services:${versions.googleservice}"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
